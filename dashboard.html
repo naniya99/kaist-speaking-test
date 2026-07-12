@@ -6,152 +6,106 @@
   <title>카이스트 한국어 말하기 평가 - 선생님 대시보드</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #F5F0E8;
-      min-height: 100vh;
-    }
+    body { font-family: 'Segoe UI', sans-serif; background: #F5F0E8; min-height: 100vh; }
     .header {
-      background: #1A1200;
-      color: #FFD600;
+      background: #1A1200; color: #FFD600;
       padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       border-bottom: 2px solid #FFD600;
     }
     .header h1 { font-size: 18px; font-weight: bold; }
-    .header span { font-size: 13px; color: #888070; }
     .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
     .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 24px;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 12px; margin-bottom: 24px;
     }
     .stat-card {
-      background: white;
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      border: 1px solid #E0D8C8;
+      background: white; border-radius: 12px;
+      padding: 16px; text-align: center; border: 1px solid #E0D8C8;
     }
-    .stat-card .number {
-      font-size: 32px;
-      font-weight: bold;
-      color: #1A1200;
-    }
-    .stat-card .label {
-      font-size: 12px;
-      color: #888070;
-      margin-top: 4px;
-    }
+    .stat-card .number { font-size: 32px; font-weight: bold; color: #1A1200; }
+    .stat-card .label { font-size: 12px; color: #888070; margin-top: 4px; }
     .refresh-btn {
-      background: #FFD600;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 16px;
-      font-size: 14px;
+      background: #FFD600; border: none;
+      padding: 10px 20px; border-radius: 8px;
+      font-weight: bold; cursor: pointer;
+      margin-bottom: 16px; font-size: 14px;
     }
-    .refresh-btn:hover { background: #e6c200; }
-    .student-card {
-      background: white;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 12px;
+    /* 학생 그룹 카드 */
+    .student-group {
+      background: white; border-radius: 16px;
+      padding: 20px; margin-bottom: 16px;
       border: 1px solid #E0D8C8;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    .student-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
+    .student-group-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #FFD600;
     }
-    .student-name {
-      font-size: 18px;
-      font-weight: bold;
-      color: #1A1200;
+    .student-group-name {
+      font-size: 20px; font-weight: bold; color: #1A1200;
     }
-    .student-time {
-      font-size: 12px;
-      color: #888070;
+    .total-all-score {
+      background: #1A1200; color: #FFD600;
+      padding: 6px 16px; border-radius: 20px;
+      font-weight: bold; font-size: 14px;
     }
-    .total-score {
-      background: #1A1200;
-      color: #FFD600;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 16px;
+    /* 각 평가 카드 */
+    .test-card {
+      background: #F5F0E8; border-radius: 12px;
+      padding: 14px; margin-bottom: 10px;
+      border: 1px solid #E0D8C8;
     }
-    .scores {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
+    .test-card-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 10px;
+    }
+    .test-title { font-size: 14px; font-weight: bold; color: #1A1200; }
+    .test-time { font-size: 11px; color: #888070; }
+    .test-score {
+      padding: 4px 12px; border-radius: 14px;
+      font-weight: bold; font-size: 14px;
+    }
+    .scores-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 6px; margin-bottom: 8px;
     }
     .score-item {
-      background: #F5F0E8;
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
+      background: white; border-radius: 8px;
+      padding: 8px; text-align: center;
     }
-    .score-item .score-val {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .score-item .score-label {
-      font-size: 11px;
-      color: #888070;
-      margin-top: 2px;
-    }
-    .score-bar {
-      height: 4px;
-      background: #EDE8DF;
-      border-radius: 2px;
-      margin-top: 6px;
-      overflow: hidden;
-    }
-    .score-bar-fill {
-      height: 100%;
-      border-radius: 2px;
-    }
-    .qa-section { margin-top: 12px; }
-    .qa-item {
+    .score-val { font-size: 16px; font-weight: bold; }
+    .score-label { font-size: 10px; color: #888070; margin-top: 2px; }
+    .score-bar { height: 3px; background: #EDE8DF; border-radius: 2px; margin-top: 4px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 2px; }
+    .answer-box {
+      background: white; border-radius: 8px;
+      padding: 10px; margin-top: 6px;
       border-left: 3px solid #6DBFAA;
-      padding: 8px 12px;
-      margin-bottom: 6px;
-      background: #F5F0E8;
-      border-radius: 0 8px 8px 0;
     }
-    .qa-question { font-size: 12px; color: #888070; }
-    .qa-answer { font-size: 14px; font-weight: 600; color: #1A1200; margin-top: 2px; }
-    .feedback-box {
-      background: #E8F5F1;
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-top: 10px;
-      font-size: 13px;
-      color: #1A1200;
-      line-height: 1.5;
-      border: 1px solid rgba(109,191,170,0.3);
+    .answer-label { font-size: 11px; color: #888070; margin-bottom: 3px; }
+    .answer-text { font-size: 13px; color: #1A1200; font-weight: 600; line-height: 1.4; }
+    .feedback-text {
+      font-size: 12px; color: #444; margin-top: 8px;
+      padding: 8px; background: #E8F5F1;
+      border-radius: 6px; line-height: 1.5;
     }
-    .loading {
-      text-align: center;
-      padding: 48px;
-      color: #888070;
-      font-size: 16px;
+    .no-tests {
+      text-align: center; padding: 20px;
+      color: #888070; font-size: 13px;
     }
-    .empty {
-      text-align: center;
-      padding: 48px;
-      color: #888070;
+    .loading { text-align: center; padding: 48px; color: #888070; }
+    .empty { text-align: center; padding: 48px; color: #888070; }
+    .test-badge {
+      display: inline-block; padding: 2px 8px;
+      border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 6px;
     }
-    .empty .emoji { font-size: 48px; margin-bottom: 12px; }
+    .badge-qa { background: #E8F5F1; color: #2A7A60; }
+    .badge-p2 { background: #FFF3E0; color: #E65100; }
+    .badge-p3 { background: #F3E5F5; color: #6A1B9A; }
+    .badge-t4 { background: #E3F2FD; color: #0D47A1; }
   </style>
 </head>
 <body>
@@ -163,16 +117,16 @@
   <div class="container">
     <div class="stats">
       <div class="stat-card">
-        <div class="number" id="total-count">-</div>
+        <div class="number" id="total-students">-</div>
         <div class="label">총 응시자</div>
       </div>
       <div class="stat-card">
-        <div class="number" id="avg-score">-</div>
-        <div class="label">평균 점수 / 15</div>
+        <div class="number" id="total-submissions">-</div>
+        <div class="label">총 제출 수</div>
       </div>
       <div class="stat-card">
-        <div class="number" id="high-score">-</div>
-        <div class="label">최고 점수 / 15</div>
+        <div class="number" id="avg-score">-</div>
+        <div class="label">평균 점수</div>
       </div>
     </div>
 
@@ -200,9 +154,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    function scoreColor(score) {
-      if (score >= 5) return '#6DBFAA';
-      if (score >= 3) return '#FFD600';
+    function scoreColor(score, max) {
+      const ratio = score / max;
+      if (ratio >= 0.8) return '#6DBFAA';
+      if (ratio >= 0.6) return '#FFD600';
       return '#FF9500';
     }
 
@@ -213,87 +168,137 @@
              d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
     }
 
+    function testLabel(testType) {
+      const labels = {
+        'qa': ['💬 평가 1', 'badge-qa', 15],
+        'picture2': ['🖼️ 평가 2', 'badge-p2', 15],
+        'picture': ['🖼️ 평가 2', 'badge-p2', 15],
+        'picture3': ['🌅 평가 3', 'badge-p3', 15],
+        'test4': ['📋 평가 4', 'badge-t4', 30],
+      };
+      return labels[testType] || ['📝 평가', 'badge-qa', 15];
+    }
+
+    function renderTestCard(r) {
+      const [label, badge, maxScore] = testLabel(r.testType);
+      const color = scoreColor(r.totalScore || 0, maxScore);
+
+      // 답변 내용
+      let answerHtml = '';
+      if (r.qaPairs) {
+        answerHtml = r.qaPairs.map((qa, i) => `
+          <div class="answer-box">
+            <div class="answer-label">Q${i+1}. ${qa.question}</div>
+            <div class="answer-text">"${qa.answer}"</div>
+          </div>`).join('');
+      } else if (r.recognizedText) {
+        answerHtml = `
+          <div class="answer-box">
+            <div class="answer-label">🎤 발화 내용</div>
+            <div class="answer-text">${r.recognizedText}</div>
+          </div>`;
+      }
+
+      return `
+        <div class="test-card">
+          <div class="test-card-header">
+            <div>
+              <span class="test-title">${label}</span>
+              <span class="test-badge ${badge}">${r.testType || ''}</span>
+              ${r.topicNumber ? `<span class="test-badge badge-t4">주제 ${r.topicNumber}</span>` : ''}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="test-time">${formatTime(r.timestamp)}</span>
+              <span class="test-score" style="background:${color}22;color:${color}">
+                ${r.totalScore || 0} / ${maxScore}
+              </span>
+            </div>
+          </div>
+
+          <div class="scores-row">
+            <div class="score-item">
+              <div class="score-val" style="color:${scoreColor(r.taskScore||0, maxScore/3)}">${r.taskScore || 0}</div>
+              <div class="score-label">📋 과제 수행</div>
+              <div class="score-bar">
+                <div class="score-bar-fill" style="width:${((r.taskScore||0)/(maxScore/3))*100}%;background:${scoreColor(r.taskScore||0,maxScore/3)}"></div>
+              </div>
+            </div>
+            <div class="score-item">
+              <div class="score-val" style="color:${scoreColor(r.languageScore||0,maxScore/3)}">${r.languageScore || 0}</div>
+              <div class="score-label">💬 언어 사용</div>
+              <div class="score-bar">
+                <div class="score-bar-fill" style="width:${((r.languageScore||0)/(maxScore/3))*100}%;background:${scoreColor(r.languageScore||0,maxScore/3)}"></div>
+              </div>
+            </div>
+            <div class="score-item">
+              <div class="score-val" style="color:${scoreColor(r.deliveryScore||0,maxScore/3)}">${r.deliveryScore || 0}</div>
+              <div class="score-label">🎤 전달</div>
+              <div class="score-bar">
+                <div class="score-bar-fill" style="width:${((r.deliveryScore||0)/(maxScore/3))*100}%;background:${scoreColor(r.deliveryScore||0,maxScore/3)}"></div>
+              </div>
+            </div>
+          </div>
+
+          ${answerHtml}
+
+          ${r.overallFeedback ? `<div class="feedback-text">💡 ${r.overallFeedback}</div>` : ''}
+        </div>`;
+    }
+
     window.loadResults = async function() {
       const container = document.getElementById('results-container');
       container.innerHTML = '<div class="loading">데이터를 불러오는 중...</div>';
 
       try {
-        const q = query(
-          collection(db, 'speaking_results'),
-          orderBy('timestamp', 'desc')
-        );
+        const q = query(collection(db, 'speaking_results'), orderBy('timestamp', 'desc'));
         const snapshot = await getDocs(q);
-        const results = [];
-        snapshot.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
+        const allResults = [];
+        snapshot.forEach(doc => allResults.push({ id: doc.id, ...doc.data() }));
 
-        // 통계 업데이트
-        document.getElementById('total-count').textContent = results.length;
-        if (results.length > 0) {
-          const avg = results.reduce((s, r) => s + (r.totalScore || 0), 0) / results.length;
+        // 학생별 그룹핑
+        const studentMap = {};
+        allResults.forEach(r => {
+          const name = r.studentName || '이름 없음';
+          if (!studentMap[name]) studentMap[name] = [];
+          studentMap[name].push(r);
+        });
+
+        // 통계
+        const students = Object.keys(studentMap);
+        document.getElementById('total-students').textContent = students.length;
+        document.getElementById('total-submissions').textContent = allResults.length;
+
+        if (allResults.length > 0) {
+          const avg = allResults.reduce((s, r) => s + (r.totalScore || 0), 0) / allResults.length;
           document.getElementById('avg-score').textContent = avg.toFixed(1);
-          const high = Math.max(...results.map(r => r.totalScore || 0));
-          document.getElementById('high-score').textContent = high;
         }
 
-        if (results.length === 0) {
-          container.innerHTML = `
-            <div class="empty">
-              <div class="emoji">📭</div>
-              <div>아직 제출된 평가가 없어요</div>
-            </div>`;
+        if (students.length === 0) {
+          container.innerHTML = '<div class="empty">📭 아직 제출된 평가가 없어요</div>';
           return;
         }
 
-        container.innerHTML = results.map(r => `
-          <div class="student-card">
-            <div class="student-header">
-              <div>
-                <div class="student-name">👤 ${r.studentName || '이름 없음'}</div>
-                <div class="student-time">${formatTime(r.timestamp)}</div>
-              </div>
-              <div class="total-score">${r.totalScore || 0} / 15</div>
-            </div>
+        container.innerHTML = students.map(name => {
+          const tests = studentMap[name];
+          const totalAll = tests.reduce((s, r) => s + (r.totalScore || 0), 0);
+          const maxAll = tests.reduce((s, r) => {
+            const [,, max] = testLabel(r.testType);
+            return s + max;
+          }, 0);
 
-            <div class="scores">
-              <div class="score-item">
-                <div class="score-val" style="color:${scoreColor(r.taskScore)}">${r.taskScore || 0}/5</div>
-                <div class="score-label">📋 과제 수행</div>
-                <div class="score-bar">
-                  <div class="score-bar-fill" style="width:${(r.taskScore||0)*20}%;background:${scoreColor(r.taskScore)}"></div>
-                </div>
-              </div>
-              <div class="score-item">
-                <div class="score-val" style="color:${scoreColor(r.languageScore)}">${r.languageScore || 0}/5</div>
-                <div class="score-label">💬 언어 사용</div>
-                <div class="score-bar">
-                  <div class="score-bar-fill" style="width:${(r.languageScore||0)*20}%;background:${scoreColor(r.languageScore)}"></div>
-                </div>
-              </div>
-              <div class="score-item">
-                <div class="score-val" style="color:${scoreColor(r.deliveryScore)}">${r.deliveryScore || 0}/5</div>
-                <div class="score-label">🎤 전달</div>
-                <div class="score-bar">
-                  <div class="score-bar-fill" style="width:${(r.deliveryScore||0)*20}%;background:${scoreColor(r.deliveryScore)}"></div>
-                </div>
-              </div>
-            </div>
+          // 평가 순서 정렬
+          const order = {'qa': 1, 'picture': 2, 'picture2': 2, 'picture3': 3, 'test4': 4};
+          tests.sort((a, b) => (order[a.testType] || 9) - (order[b.testType] || 9));
 
-            <div class="qa-section">
-              ${(r.qaPairs || []).map((qa, i) => `
-                <div class="qa-item">
-                  <div class="qa-question">Q${i+1}. ${qa.question}</div>
-                  <div class="qa-answer">"${qa.answer}"</div>
-                </div>
-              `).join('')}
-            </div>
-
-            ${r.overallFeedback ? `
-              <div class="feedback-box">
-                💡 ${r.overallFeedback}
+          return `
+            <div class="student-group">
+              <div class="student-group-header">
+                <div class="student-group-name">👤 ${name}</div>
+                <div class="total-all-score">총점: ${totalAll} / ${maxAll}</div>
               </div>
-            ` : ''}
-          </div>
-        `).join('');
+              ${tests.map(r => renderTestCard(r)).join('')}
+            </div>`;
+        }).join('');
 
       } catch(e) {
         container.innerHTML = '<div class="loading">데이터를 불러오지 못했어요. 새로고침해주세요.</div>';
