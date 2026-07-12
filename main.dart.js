@@ -83140,7 +83140,7 @@ a4z(){var s=null
 return A.fy(new A.cS(B.fS,A.eB(A.c([B.Uy,B.c4,B.Us,B.bf,B.Um,B.z0,A.aAm(this.y,A.aty(s,new A.fg(4,A.cD(12),B.iJ),s,s,s,s,s,s,!0,s,s,s,s,s,s,s,s,s,s,s,s,new A.fg(4,A.cD(12),B.m2),s,s,s,s,s,s,s,s,s,"Enter your name",s,s,s,s,s,s,s,B.ln,"\uc774\ub984\uc744 \uc785\ub825\ud558\uc138\uc694",!0,!0,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s),new A.akY(this),B.zy,B.az),B.c4,A.fl(A.a1e(B.zB,new A.akZ(this),A.o7(s,s,B.an,s,s,s,s,s,s,s,s,s,B.df,s,new A.cx(A.cD(12),B.q),s,s,s,s,s)),s,1/0),B.bC,A.dE(B.UF,B.w,s,new A.cW(B.fq,s,s,A.cD(10),s,s,B.at),s,s,B.fR,s)],t.p),B.Q,B.bp,B.a_),s),s,s)},
 Rz(){this.a6(new A.ale(this))},
 a4H(){var s,r,q,p=this,o=null,n=A.cD(12),m=A.Hi(B.fx,2),l=A.c([new A.dD(0,B.e_,A.ax(20,B.l.B()>>>16&255,B.l.B()>>>8&255,B.l.B()&255),B.um,8)],t.sq)
-l=A.dE(A.Zs(A.cD(10),new A.yn(A.aLr(o,o,new A.tn("https://raw.githubusercontent.com/naniya99/kaist-speaking-test/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202026-07-11%20210445.png",1,o,B.Wv)),new A.al2(),new A.al3(),B.AJ,o)),B.w,o,new A.cW(o,o,m,n,l,o,B.at),o,B.cD,o,o)
+l=A.dE(A.Zs(A.cD(10),new A.yn(A.aLr(o,o,new A.tn("https://raw.githubusercontent.com/naniya99/kaist-speaking-test/main/picture_test.png",1,o,B.Wv)),new A.al2(),new A.al3(),B.AJ,o)),B.w,o,new A.cW(o,o,m,n,l,o,B.at),o,B.cD,o,o)
 if(!p.Q){n=t.p
 m=A.c([A.dE(B.Dq,B.w,o,new A.cW(B.a5,o,o,A.cD(14),o,o,B.at),o,o,B.cD,1/0),B.bC],n)
 if(!p.z)m.push(A.fl(A.a1f(B.Fr,B.Uh,p.gagz(),A.o7(o,o,B.an,o,o,o,o,o,o,o,o,o,B.df,o,new A.cx(A.cD(12),B.q),o,o,o,o,o)),o,1/0))
