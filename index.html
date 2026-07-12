@@ -61,23 +61,19 @@
   </script>
 
   <script>
+    // ── 평가 1용: 짧은 인식 (말 멈추면 자동 종료) ──────────
     window.startPronunciationAssessment = function(referenceText) {
       return new Promise((resolve) => {
         if (!('webkitSpeechRecognition' in window) &&
             !('SpeechRecognition' in window)) {
-          resolve(JSON.stringify({
-            text: '',
-            accuracyScore: 0,
-            fluencyScore: 0,
-            completenessScore: 0,
-            pronunciationScore: 0,
-          }));
+          resolve(JSON.stringify({text:'',accuracyScore:0,fluencyScore:0,completenessScore:0,pronunciationScore:0}));
           return;
         }
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         const r = new SR();
         r.lang = 'ko-KR';
         r.interimResults = false;
+        r.continuous = false;
         r.maxAlternatives = 1;
         r.onresult = (e) => {
           const text = e.results[0][0].transcript;
@@ -90,11 +86,8 @@
           }));
         };
         r.onerror = () => resolve(JSON.stringify({
-          text: '',
-          accuracyScore: 0,
-          fluencyScore: 0,
-          completenessScore: 0,
-          pronunciationScore: 0,
+          text:'',accuracyScore:0,fluencyScore:0,
+          completenessScore:0,pronunciationScore:0
         }));
         r.start();
       });
@@ -105,13 +98,13 @@
       return new Promise((resolve) => {
         if (!('webkitSpeechRecognition' in window) &&
             !('SpeechRecognition' in window)) {
-          resolve('');
-          return;
+          resolve(''); return;
         }
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SR();
         recognition.lang = lang || 'ko-KR';
         recognition.interimResults = false;
+        recognition.continuous = false;
         recognition.maxAlternatives = 1;
         recognition.onresult = (e) => resolve(e.results[0][0].transcript);
         recognition.onerror = () => resolve('');
@@ -123,6 +116,68 @@
     window.stopSpeechRecognition = function() {
       if (recognition) recognition.stop();
     };
+
+    // ── 평가 2,3,4용: 연속 인식 (버튼 누를 때까지 계속) ────
+    let longRecognition = null;
+    let longRecognitionResolve = null;
+    let longRecognitionText = '';
+
+    window.startLongSpeechRecognition = function(lang) {
+      return new Promise((resolve) => {
+        if (!('webkitSpeechRecognition' in window) &&
+            !('SpeechRecognition' in window)) {
+          resolve(''); return;
+        }
+
+        longRecognitionText = '';
+        longRecognitionResolve = resolve;
+
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        longRecognition = new SR();
+        longRecognition.lang = lang || 'ko-KR';
+        longRecognition.interimResults = false;
+        longRecognition.continuous = true;  // 연속 인식!
+        longRecognition.maxAlternatives = 1;
+
+        longRecognition.onresult = (e) => {
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+              longRecognitionText += e.results[i][0].transcript + ' ';
+            }
+          }
+        };
+
+        longRecognition.onerror = (e) => {
+          // 에러가 나도 계속 재시작 (no-speech 에러 무시)
+          if (e.error === 'no-speech') {
+            try { longRecognition.start(); } catch(err) {}
+          }
+        };
+
+        longRecognition.onend = () => {
+          // 연속 인식 유지 (stop 호출 전까지)
+          if (longRecognitionResolve) {
+            try { longRecognition.start(); } catch(err) {}
+          }
+        };
+
+        longRecognition.start();
+      });
+    };
+
+    window.stopLongSpeechRecognition = function() {
+      if (longRecognition) {
+        longRecognitionResolve = null; // onend 재시작 방지
+        try { longRecognition.stop(); } catch(e) {}
+        longRecognition = null;
+      }
+      const result = longRecognitionText.trim();
+      longRecognitionText = '';
+      return result;
+    };
+
+    // Flutter에서 동기 호출용 (같은 함수)
+    window.stopLongSpeechRecognitionSync = window.stopLongSpeechRecognition;
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
