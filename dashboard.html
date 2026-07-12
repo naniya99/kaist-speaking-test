@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카이스트 한국어 말하기 평가 - 선생님 대시보드</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #F5F0E8;
+      min-height: 100vh;
+    }
+    .header {
+      background: #1A1200;
+      color: #FFD600;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #FFD600;
+    }
+    .header h1 { font-size: 18px; font-weight: bold; }
+    .header span { font-size: 13px; color: #888070; }
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid #E0D8C8;
+    }
+    .stat-card .number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #1A1200;
+    }
+    .stat-card .label {
+      font-size: 12px;
+      color: #888070;
+      margin-top: 4px;
+    }
+    .refresh-btn {
+      background: #FFD600;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .refresh-btn:hover { background: #e6c200; }
+    .student-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid #E0D8C8;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .student-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .student-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #1A1200;
+    }
+    .student-time {
+      font-size: 12px;
+      color: #888070;
+    }
+    .total-score {
+      background: #1A1200;
+      color: #FFD600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .score-item {
+      background: #F5F0E8;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    .score-item .score-val {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .score-item .score-label {
+      font-size: 11px;
+      color: #888070;
+      margin-top: 2px;
+    }
+    .score-bar {
+      height: 4px;
+      background: #EDE8DF;
+      border-radius: 2px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+    }
+    .qa-section { margin-top: 12px; }
+    .qa-item {
+      border-left: 3px solid #6DBFAA;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      background: #F5F0E8;
+      border-radius: 0 8px 8px 0;
+    }
+    .qa-question { font-size: 12px; color: #888070; }
+    .qa-answer { font-size: 14px; font-weight: 600; color: #1A1200; margin-top: 2px; }
+    .feedback-box {
+      background: #E8F5F1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #1A1200;
+      line-height: 1.5;
+      border: 1px solid rgba(109,191,170,0.3);
+    }
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: #888070;
+      font-size: 16px;
+    }
+    .empty {
+      text-align: center;
+      padding: 48px;
+      color: #888070;
+    }
+    .empty .emoji { font-size: 48px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📊 선생님 대시보드</h1>
+    <span>카이스트 한국어 말하기 평가</span>
+  </div>
+
+  <div class="container">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="number" id="total-count">-</div>
+        <div class="label">총 응시자</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="avg-score">-</div>
+        <div class="label">평균 점수 / 15</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="high-score">-</div>
+        <div class="label">최고 점수 / 15</div>
+      </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadResults()">🔄 새로고침</button>
+
+    <div id="results-container">
+      <div class="loading">데이터를 불러오는 중...</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+    import { getFirestore, collection, getDocs, orderBy, query }
+        from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuGcGxc1F3XAA6bpUgArVkt5GM5-HAZmk",
+      authDomain: "kaist-speaking-test.firebaseapp.com",
+      projectId: "kaist-speaking-test",
+      storageBucket: "kaist-speaking-test.firebasestorage.app",
+      messagingSenderId: "823888317204",
+      appId: "1:823888317204:web:e72a8547b8a138d3f49001"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function scoreColor(score) {
+      if (score >= 5) return '#6DBFAA';
+      if (score >= 3) return '#FFD600';
+      return '#FF9500';
+    }
+
+    function formatTime(timestamp) {
+      if (!timestamp) return '';
+      const d = new Date(timestamp);
+      return d.toLocaleDateString('ko-KR') + ' ' +
+             d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+    }
+
+    window.loadResults = async function() {
+      const container = document.getElementById('results-container');
+      container.innerHTML = '<div class="loading">데이터를 불러오는 중...</div>';
+
+      try {
+        const q = query(
+          collection(db, 'speaking_results'),
+          orderBy('timestamp', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        const results = [];
+        snapshot.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
+
+        // 통계 업데이트
+        document.getElementById('total-count').textContent = results.length;
+        if (results.length > 0) {
+          const avg = results.reduce((s, r) => s + (r.totalScore || 0), 0) / results.length;
+          document.getElementById('avg-score').textContent = avg.toFixed(1);
+          const high = Math.max(...results.map(r => r.totalScore || 0));
+          document.getElementById('high-score').textContent = high;
+        }
+
+        if (results.length === 0) {
+          container.innerHTML = `
+            <div class="empty">
+              <div class="emoji">📭</div>
+              <div>아직 제출된 평가가 없어요</div>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = results.map(r => `
+          <div class="student-card">
+            <div class="student-header">
+              <div>
+                <div class="student-name">👤 ${r.studentName || '이름 없음'}</div>
+                <div class="student-time">${formatTime(r.timestamp)}</div>
+              </div>
+              <div class="total-score">${r.totalScore || 0} / 15</div>
+            </div>
+
+            <div class="scores">
+              <div class="score-item">
+                <div class="score-val" style="color:${scoreColor(r.taskScore)}">${r.taskScore || 0}/5</div>
+                <div class="score-label">📋 과제 수행</div>
+                <div class="score-bar">
+                  <div class="score-bar-fill" style="width:${(r.taskScore||0)*20}%;background:${scoreColor(r.taskScore)}"></div>
+                </div>
+              </div>
+              <div class="score-item">
+                <div class="score-val" style="color:${scoreColor(r.languageScore)}">${r.languageScore || 0}/5</div>
+                <div class="score-label">💬 언어 사용</div>
+                <div class="score-bar">
+                  <div class="score-bar-fill" style="width:${(r.languageScore||0)*20}%;background:${scoreColor(r.languageScore)}"></div>
+                </div>
+              </div>
+              <div class="score-item">
+                <div class="score-val" style="color:${scoreColor(r.deliveryScore)}">${r.deliveryScore || 0}/5</div>
+                <div class="score-label">🎤 전달</div>
+                <div class="score-bar">
+                  <div class="score-bar-fill" style="width:${(r.deliveryScore||0)*20}%;background:${scoreColor(r.deliveryScore)}"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="qa-section">
+              ${(r.qaPairs || []).map((qa, i) => `
+                <div class="qa-item">
+                  <div class="qa-question">Q${i+1}. ${qa.question}</div>
+                  <div class="qa-answer">"${qa.answer}"</div>
+                </div>
+              `).join('')}
+            </div>
+
+            ${r.overallFeedback ? `
+              <div class="feedback-box">
+                💡 ${r.overallFeedback}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+
+      } catch(e) {
+        container.innerHTML = '<div class="loading">데이터를 불러오지 못했어요. 새로고침해주세요.</div>';
+        console.error(e);
+      }
+    };
+
+    loadResults();
+  </script>
+</body>
+</html>

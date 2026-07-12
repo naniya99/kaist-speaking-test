@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="KAIST Speaking Test">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>카이스트 한국어 말하기 평가</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, getDocs, orderBy, query }
+        from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuGcGxc1F3XAA6bpUgArVkt5GM5-HAZmk",
+      authDomain: "kaist-speaking-test.firebaseapp.com",
+      projectId: "kaist-speaking-test",
+      storageBucket: "kaist-speaking-test.firebasestorage.app",
+      messagingSenderId: "823888317204",
+      appId: "1:823888317204:web:e72a8547b8a138d3f49001"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.saveToFirebase = async function(dataJson) {
+      try {
+        const data = JSON.parse(dataJson);
+        await addDoc(collection(db, 'speaking_results'), data);
+        return 'success';
+      } catch(e) {
+        console.error('Firebase save error:', e);
+        return 'error';
+      }
+    };
+
+    window.loadFromFirebase = async function() {
+      try {
+        const q = query(
+          collection(db, 'speaking_results'),
+          orderBy('timestamp', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        const results = [];
+        snapshot.forEach(doc => {
+          results.push({ id: doc.id, ...doc.data() });
+        });
+        return JSON.stringify(results);
+      } catch(e) {
+        console.error('Firebase load error:', e);
+        return '[]';
+      }
+    };
+  </script>
+
+  <script>
+    window.startPronunciationAssessment = function(referenceText) {
+      return new Promise((resolve) => {
+        if (!('webkitSpeechRecognition' in window) &&
+            !('SpeechRecognition' in window)) {
+          resolve(JSON.stringify({
+            text: '',
+            accuracyScore: 0,
+            fluencyScore: 0,
+            completenessScore: 0,
+            pronunciationScore: 0,
+          }));
+          return;
+        }
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const r = new SR();
+        r.lang = 'ko-KR';
+        r.interimResults = false;
+        r.maxAlternatives = 1;
+        r.onresult = (e) => {
+          const text = e.results[0][0].transcript;
+          resolve(JSON.stringify({
+            text: text,
+            accuracyScore: 0,
+            fluencyScore: 0,
+            completenessScore: 0,
+            pronunciationScore: 0,
+          }));
+        };
+        r.onerror = () => resolve(JSON.stringify({
+          text: '',
+          accuracyScore: 0,
+          fluencyScore: 0,
+          completenessScore: 0,
+          pronunciationScore: 0,
+        }));
+        r.start();
+      });
+    };
+
+    let recognition = null;
+    window.startSpeechRecognition = function(lang) {
+      return new Promise((resolve) => {
+        if (!('webkitSpeechRecognition' in window) &&
+            !('SpeechRecognition' in window)) {
+          resolve('');
+          return;
+        }
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SR();
+        recognition.lang = lang || 'ko-KR';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.onresult = (e) => resolve(e.results[0][0].transcript);
+        recognition.onerror = () => resolve('');
+        recognition.onend = () => {};
+        recognition.start();
+      });
+    };
+
+    window.stopSpeechRecognition = function() {
+      if (recognition) recognition.stop();
+    };
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
