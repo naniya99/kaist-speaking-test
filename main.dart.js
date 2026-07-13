@@ -85871,7 +85871,7 @@ return A.I(null,r)}})
 return A.J($async$FA,r)},
 Sv(){var s=this.ax
 if(s!=null)s.ah()
-this.W(new A.ao1(this,v.G.stopLongSpeechRecognition()))},
+this.W(new A.ao1(this,v.G.stopLongSpeechRecognitionSync()))},
 tw(){var s=0,r=A.K(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d
 var $async$tw=A.L(function(a,b){if(a===1){o.push(b)
 s=p}for(;;)switch(s){case 0:if(n.ay.length===0){s=1
@@ -85912,7 +85912,7 @@ r=s.cx
 r===$&&A.a()
 r.l()
 s.a4g()},
-M(a){var s,r,q,p=this,o=null,n=A.bY(o,B.t,B.I,o,2,o,o,o),m=A.bU("\ud3c9\uac00 4 \u2014 \uc8fc\uc81c ${widget.topicNumber}",o,o,o,B.fn,o,o),l=t.p,k=A.c([],l)
+M(a){var s,r,q,p=this,o=null,n=A.bY(o,B.t,B.I,o,2,o,o,o),m=A.bU("\ud3c9\uac00 4 \u2014 \uc8fc\uc81c",o,o,o,B.fn,o,o),l=t.p,k=A.c([],l)
 if(p.w){s=p.y
 r=s>10
 q=r?B.ah:B.dC
