@@ -49,9 +49,7 @@
         );
         const snapshot = await getDocs(q);
         const results = [];
-        snapshot.forEach(doc => {
-          results.push({ id: doc.id, ...doc.data() });
-        });
+        snapshot.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
         return JSON.stringify(results);
       } catch(e) {
         console.error('Firebase load error:', e);
@@ -61,36 +59,67 @@
   </script>
 
   <script>
-    // ── 평가 1용: 짧은 인식 (말 멈추면 자동 종료) ──────────
-    window.startPronunciationAssessment = function(referenceText) {
+    // ── Azure 공통 설정 ───────────────────────────────────
+    const AZURE_STT_KEY = '8cLXCDsSXMbr5al4TlsOogqUuHWIGqIWbPsBuY8Mneo9B4ADOxq1JQQJ99CGACNns7RXJ3w3AAAYACOGDy22';
+    const AZURE_STT_REGION = 'koreacentral';
+
+    async function loadAzureSDK() {
+      if (typeof SpeechSDK !== 'undefined') return;
       return new Promise((resolve) => {
-        if (!('webkitSpeechRecognition' in window) &&
-            !('SpeechRecognition' in window)) {
-          resolve(JSON.stringify({text:'',accuracyScore:0,fluencyScore:0,completenessScore:0,pronunciationScore:0}));
-          return;
-        }
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const r = new SR();
-        r.lang = 'ko-KR';
-        r.interimResults = false;
-        r.continuous = false;
-        r.maxAlternatives = 1;
-        r.onresult = (e) => {
-          const text = e.results[0][0].transcript;
-          resolve(JSON.stringify({
-            text: text,
-            accuracyScore: 0,
-            fluencyScore: 0,
-            completenessScore: 0,
-            pronunciationScore: 0,
-          }));
-        };
-        r.onerror = () => resolve(JSON.stringify({
-          text:'',accuracyScore:0,fluencyScore:0,
-          completenessScore:0,pronunciationScore:0
-        }));
-        r.start();
+        const script = document.createElement('script');
+        script.src = 'https://aka.ms/csspeech/jsbrowserpackageraw';
+        script.onload = () => resolve();
+        script.onerror = () => resolve();
+        document.head.appendChild(script);
       });
+    }
+
+    // ── 평가 1용: Azure STT (짧은 인식) ─────────────────
+    window.startPronunciationAssessment = async function(referenceText) {
+      try {
+        await loadAzureSDK();
+
+        if (typeof SpeechSDK === 'undefined') {
+          // Azure 실패시 Web Speech API로 대체
+          return new Promise((resolve) => {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { resolve(JSON.stringify({text:'',accuracyScore:0,fluencyScore:0,completenessScore:0,pronunciationScore:0})); return; }
+            const r = new SR();
+            r.lang = 'ko-KR';
+            r.interimResults = false;
+            r.maxAlternatives = 1;
+            r.onresult = (e) => resolve(JSON.stringify({text: e.results[0][0].transcript, accuracyScore:0, fluencyScore:0, completenessScore:0, pronunciationScore:0}));
+            r.onerror = () => resolve(JSON.stringify({text:'',accuracyScore:0,fluencyScore:0,completenessScore:0,pronunciationScore:0}));
+            r.start();
+          });
+        }
+
+        return new Promise((resolve) => {
+          const speechConfig = SpeechSDK.SpeechConfig
+              .fromSubscription(AZURE_STT_KEY, AZURE_STT_REGION);
+          speechConfig.speechRecognitionLanguage = 'ko-KR';
+
+          const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+          const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+          recognizer.recognizeOnceAsync((result) => {
+            if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+              resolve(JSON.stringify({
+                text: result.text,
+                accuracyScore: 0, fluencyScore: 0,
+                completenessScore: 0, pronunciationScore: 0,
+              }));
+            } else {
+              resolve(JSON.stringify({text:'',accuracyScore:0,fluencyScore:0,completenessScore:0,pronunciationScore:0}));
+            }
+            recognizer.close();
+          });
+        });
+
+      } catch(e) {
+        console.error('Azure STT 오류:', e);
+        return JSON.stringify({text:'',accuracyScore:0,fluencyScore:0,completenessScore:0,pronunciationScore:0});
+      }
     };
 
     let recognition = null;
@@ -117,67 +146,76 @@
       if (recognition) recognition.stop();
     };
 
-    // ── 평가 2,3,4용: 연속 인식 (버튼 누를 때까지 계속) ────
-    let longRecognition = null;
-    let longRecognitionResolve = null;
-    let longRecognitionText = '';
+    // ── 평가 2,3,4용: Azure STT 연속 인식 ────────────────
 
-    window.startLongSpeechRecognition = function(lang) {
-      return new Promise((resolve) => {
-        if (!('webkitSpeechRecognition' in window) &&
-            !('SpeechRecognition' in window)) {
-          resolve(''); return;
+    window._azureRecognizer = null;
+    window._azureFullText = '';
+
+    window.startLongSpeechRecognition = async function(lang) {
+      try {
+        await loadAzureSDK();
+
+        if (typeof SpeechSDK === 'undefined') {
+          console.error('Azure SDK 로드 실패, Web Speech API로 대체');
+          return;
         }
 
-        longRecognitionText = '';
-        longRecognitionResolve = resolve;
+        window._azureFullText = '';
 
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        longRecognition = new SR();
-        longRecognition.lang = lang || 'ko-KR';
-        longRecognition.interimResults = false;
-        longRecognition.continuous = true;  // 연속 인식!
-        longRecognition.maxAlternatives = 1;
+        const speechConfig = SpeechSDK.SpeechConfig
+            .fromSubscription(AZURE_STT_KEY, AZURE_STT_REGION);
+        speechConfig.speechRecognitionLanguage = lang || 'ko-KR';
 
-        longRecognition.onresult = (e) => {
-          for (let i = e.resultIndex; i < e.results.length; i++) {
-            if (e.results[i].isFinal) {
-              longRecognitionText += e.results[i][0].transcript + ' ';
-            }
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+        // 인식된 문장마다 누적
+        recognizer.recognized = (s, e) => {
+          if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+            window._azureFullText += e.result.text + ' ';
+            console.log('인식됨:', e.result.text);
           }
         };
 
-        longRecognition.onerror = (e) => {
-          // 에러가 나도 계속 재시작 (no-speech 에러 무시)
-          if (e.error === 'no-speech') {
-            try { longRecognition.start(); } catch(err) {}
-          }
+        recognizer.canceled = (s, e) => {
+          console.log('Azure STT 취소:', e.errorDetails);
         };
 
-        longRecognition.onend = () => {
-          // 연속 인식 유지 (stop 호출 전까지)
-          if (longRecognitionResolve) {
-            try { longRecognition.start(); } catch(err) {}
-          }
-        };
+        recognizer.startContinuousRecognitionAsync(
+          () => console.log('Azure STT 시작'),
+          (err) => console.error('Azure STT 시작 오류:', err)
+        );
 
-        longRecognition.start();
-      });
-    };
+        window._azureRecognizer = recognizer;
 
-    window.stopLongSpeechRecognition = function() {
-      if (longRecognition) {
-        longRecognitionResolve = null; // onend 재시작 방지
-        try { longRecognition.stop(); } catch(e) {}
-        longRecognition = null;
+      } catch(e) {
+        console.error('Azure STT 오류:', e);
       }
-      const result = longRecognitionText.trim();
-      longRecognitionText = '';
-      return result;
     };
 
-    // Flutter에서 동기 호출용 (같은 함수)
-    window.stopLongSpeechRecognitionSync = window.stopLongSpeechRecognition;
+    window.stopLongSpeechRecognitionSync = function() {
+      const text = (window._azureFullText || '').trim();
+      window._azureFullText = '';
+
+      if (window._azureRecognizer) {
+        try {
+          window._azureRecognizer.stopContinuousRecognitionAsync(
+            () => {
+              window._azureRecognizer.close();
+              window._azureRecognizer = null;
+            },
+            (err) => {
+              console.error('Azure STT 중지 오류:', err);
+              window._azureRecognizer = null;
+            }
+          );
+        } catch(e) {
+          window._azureRecognizer = null;
+        }
+      }
+
+      return text;
+    };
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
